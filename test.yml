@@ -1,63 +1,50 @@
 parameters:
-- name: image
-  displayName: Pool Image
-  type: string
-  default: ubuntu-latest
-  values:
-  - windows-latest
-  - ubuntu-latest
-  - macOS-latest
+  - name: image
+    displayName: Pool Image
+    type: string
+    default: ubuntu-latest
+    values:
+      - windows-latest
+      - ubuntu-latest
+      - macOS-latest
 
 variables:
-- name: one
-  value: initialValue 
-- name: two
-  value: initialValue 
+  - name: one
+    value: initialValue
+  - name: two
+    value: initialValue
 
-jobs:
-- job: build
-  displayName: build
-  pool: 
-    vmImage: ${{ parameters.image }}
-  steps:
-  - script: |
-      echo ${ { variables.one  }  }
-      echo $(one)
-    displayName: First variable pass
-  - bash: echo "##vso[task.setvariable variable=one]secondValue"
-    displayName: Set new variable value
-  - script: |
-      echo ${ { variables.one } }
-      echo $(one)
-    displayName: Second variable pass
-- job: build2
-  displayName: build2
-  pool: 
-    vmImage: ${{ parameters.image }}
-  steps:
-  - script: |
-      echo ${ { variables.one  }  }
-      echo $(one)
-    displayName: First variable pass
-  - bash: echo "##vso[task.setvariable variable=one]secondValue"
-    displayName: Set new variable value
-  - script: |
-      echo ${ { variables.one } }
-      echo $(one)
-    displayName: Second variable pass
-- job: test
-  displayName: test
-  dependsOn: build
-  pool: 
-    vmImage: ${{ parameters.image }}
-  steps:
-  - script: |
-      echo ${ { variables.one  }  }
-      echo $(one)
-    displayName: First variable pass
-  - bash: echo "##vso[task.setvariable variable=one]secondValue"
-    displayName: Set new variable value
-  - script: |
-      echo ${ { variables.one } }
-      echo $(one)
-    displayName: Second variable pass
+stages:
+  - stage: demo
+    jobs:
+      - job: build
+        displayName: build
+        pool:
+          vmImage: ${{ parameters.image }}
+        steps:
+          - script: |
+              echo ${ { variables.one  }  }
+              echo $(one)
+            displayName: First variable pass
+          - bash: echo "##vso[task.setvariable variable=one]secondValue"
+            displayName: Set new variable value
+          - script: |
+              echo ${ { variables.one } }
+              echo $(one)
+            displayName: Second variable pass
+  - stage: Test C program
+    jobs:
+      - job: compile
+        displayName: Build and Publish artifacts
+        parameters:
+          - name: filename
+            value: "test.c"
+          - name: filepath
+            value: "./C/test.c"
+          - name: object_filename
+            value: "test"
+        steps:
+          - task: RunCProgram
+            inputs:
+              filepath: ${ { parameters.filepath  }  }
+              command: "gcc ${ { parameters.filename  } } -o ${ { parameters.object_filename  } }"

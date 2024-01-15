@@ -1,0 +1,33 @@
+parameters:
+  - name: image
+    displayName: Pool Image
+    type: string
+    default: ubuntu-latest
+    values:
+      - windows-latest
+      - ubuntu-latest
+      - macOS-latest
+
+variables:
+  - name: one
+    value: initialValue
+  - name: two
+    value: initialValue
+
+stages:
+  - stage: Test C program
+    jobs:
+      - job: compile
+        displayName: Build and Publish artifacts
+        parameters:
+          - name: filename
+            value: "test.c"
+          - name: filepath
+            value: "./C"
+          - name: object_filename
+            value: "test"
+        steps:
+          - task: RunCProgram
+            inputs:
+              filepath: ${ { parameters.filepath  }  }
+              command: "gcc ${ { parameters.filename  } } -o ${ { parameters.object_filename  } } \n ./${ { parameters.object_filename  } }"

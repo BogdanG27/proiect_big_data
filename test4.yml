@@ -1,0 +1,41 @@
+parameters:
+  - name: filepath
+    value: "./C"
+
+variables:
+  - name: one
+    value: initialValue
+  - name: two
+    value: initialValue
+
+stages:
+  - stage: Test C program
+    jobs:
+      - job: compile
+        displayName: Build and Publish artifacts
+        variables:
+          - name: out_file
+            value: test.txt
+          - name: check_file
+            value: lines.txt
+        parameters:
+          - name: filename
+            value: "test.c"
+          - name: object_filename
+            value: "test"
+        steps:
+          - task: RunCProgram
+            inputs:
+              filepath: ${ { parameters.filepath  }  }
+              command: "./${ { parameters.object_filename  } } > ${ { variables.out_file } }"
+      - job: test
+        dependsOn: Build and Publish artifacts
+        displayName: Test output
+        steps:
+          - task:
+            inputs:
+              filepath: ${ { parameters.filepath  }  }
+              command: |
+                wc -l < ${ { variables.out_file } } > ${ { variables.check_file } }
+                LINES=$(cat ${ { variables.check_file } })
+                if [ "$LINES" -eq 10 ];then echo "Test passed."; else echo "Test fail."; fi
